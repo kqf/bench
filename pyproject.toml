@@ -45,7 +45,6 @@ dynamic = ["version"]
 description = "Play with the object detection data"
 dependencies = [
     "dadinhos",
-    "modelinhos",
     "detectinhos",
 ]
 [tool.setuptools_scm]
