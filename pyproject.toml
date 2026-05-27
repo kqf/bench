@@ -46,6 +46,7 @@ description = "Play with the object detection data"
 dependencies = [
     "dadinhos",
     "detectinhos",
+    "modelinhos"
 ]
 [tool.setuptools_scm]
 version_scheme = "post-release" # Uses Git tags for versioning
