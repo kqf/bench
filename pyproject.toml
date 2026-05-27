@@ -28,7 +28,7 @@ ignore = [
 combine-as-imports = true
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 strict = false
 ignore_missing_imports = true
 
@@ -46,6 +46,7 @@ description = "Play with the object detection data"
 dependencies = [
     "dadinhos",
     "detectinhos",
+    "modelinhos"
 ]
 [tool.setuptools_scm]
 version_scheme = "post-release" # Uses Git tags for versioning
