@@ -42,7 +42,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bench"
 dynamic = ["version"]
-description = "Play with the object detection data"
+description = "Play with the object detection"
 dependencies = [
     "dadinhos",
     "detectinhos",
