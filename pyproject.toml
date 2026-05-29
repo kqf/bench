@@ -48,5 +48,9 @@ dependencies = [
     "detectinhos",
     "modelinhos"
 ]
+
+[tool.setuptools]
+packages = ["bench"]
+
 [tool.setuptools_scm]
 version_scheme = "post-release" # Uses Git tags for versioning
