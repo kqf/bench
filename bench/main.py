@@ -7,13 +7,24 @@ from modelinhos.evaluation import (
     per_sample_metrics,
     visualize_fp_fn,
 )
-from modelinhos.processing import LabelEncoder
+from modelinhos.processing import LabelEncoder, Sample
 from modelinhos.sample import read_samples
 from modelinhos.ssd.inference import TorchvisionDetector
 from torchvision.models.detection import (
     SSDLite320_MobileNet_V3_Large_Weights,
     ssdlite320_mobilenet_v3_large,
 )
+
+
+class Clamp:
+    def fit(self, X):
+        return self
+
+    def transform(self, X: list[Sample]) -> list[Sample]:
+        for sample in X:
+            for ann in sample.annotations:
+                ann.label = min(int(ann.label), 2)
+        return X
 
 
 def main(
@@ -40,6 +51,9 @@ def main(
     y_pred = model.transform(
         [cv2.imread(path.parent / sample.file_name) for sample in train]
     )
+    # Fix the indexing issues
+    y_pred = Clamp().transform(y_pred)
+
     y_pred = le.inverse_transform(y_pred)
     m_ap = mean_average_precision(train, y_pred, l2i=le.l2i)
     print(m_ap["mAP"].iloc[0])
