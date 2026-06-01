@@ -9,4 +9,4 @@ def dataset(tmp_path):
 
 
 def test_main(dataset):
-    main(dataset)
+    main(dataset, n_samples=100)
