@@ -30,12 +30,13 @@ class Clamp:
 def main(
     path: Path = Path("data/blobs/annotations.json"),
     resolution: tuple[int, int] = (480, 640),  # height, width
+    n_samples: int = 1000,
 ):
     if not path.exists():
         make_detection_task(
             path,
             resolution=resolution,
-            n_samples=1000,
+            n_samples=n_samples,
             n_classes=3,
         )
 
