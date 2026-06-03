@@ -50,7 +50,7 @@ def main(
     le = LabelEncoder().fit(train)
     # model.fit(le.transform(train)) ~
     y_pred = model.transform(
-        [cv2.imread(path.parent / sample.file_name) for sample in train]
+        [cv2.imread(sample.file_name) for sample in train]
     )
     # Fix the indexing issues
     y_pred = Clamp().transform(y_pred)
