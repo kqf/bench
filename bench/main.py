@@ -8,6 +8,7 @@ from modelinhos.evaluation import (
     per_sample_metrics,
     visualize_fp_fn,
 )
+from modelinhos.plot import plot
 from modelinhos.processing import LabelEncoder, Sample
 from modelinhos.sample import read_samples
 from modelinhos.ssd.inference import TorchvisionDetector
@@ -62,6 +63,13 @@ def main(
     # model.fit(le.transform(train)) ~
     y_pred = infer(resolution, train)
     y_pred = le.inverse_transform(y_pred)
+    for i, (true, pred) in enumerate(zip(train, y_pred)):
+        if i > 10:
+            continue
+        frame = cv2.imread(str(true.file_name))
+        cv2.imshow("frame", plot(frame, pred))
+        cv2.waitKey()
+
     m_ap = mean_average_precision(train, y_pred, l2i=le.l2i)
     print(m_ap["mAP"].iloc[0])
 
