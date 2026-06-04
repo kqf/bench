@@ -2,6 +2,7 @@ from pathlib import Path
 
 import cv2
 from dadinhos.generate import make_detection_task
+from joblib import Memory
 from modelinhos.evaluation import (
     mean_average_precision,
     per_sample_metrics,
@@ -14,6 +15,22 @@ from torchvision.models.detection import (
     SSDLite320_MobileNet_V3_Large_Weights,
     ssdlite320_mobilenet_v3_large,
 )
+
+memory = Memory(location=".cache", verbose=0)
+
+
+@memory.cache
+def infer(resolution: tuple[int, int], samples: list[Sample]) -> list[Sample]:
+    model = TorchvisionDetector(
+        resolution=resolution,
+        build_model=ssdlite320_mobilenet_v3_large,
+        weights=SSDLite320_MobileNet_V3_Large_Weights.COCO_V1,
+    )
+
+    y = model.transform([cv2.imread(sample.file_name) for sample in samples])
+    # Fix the indexing issues
+    y = Clamp().transform(y)
+    return y
 
 
 class Clamp:
@@ -40,21 +57,10 @@ def main(
             n_classes=3,
         )
 
-    model = TorchvisionDetector(
-        resolution=resolution,
-        build_model=ssdlite320_mobilenet_v3_large,
-        weights=SSDLite320_MobileNet_V3_Large_Weights.COCO_V1,
-    )
-
     train = read_samples(path)
     le = LabelEncoder().fit(train)
     # model.fit(le.transform(train)) ~
-    y_pred = model.transform(
-        [cv2.imread(sample.file_name) for sample in train]
-    )
-    # Fix the indexing issues
-    y_pred = Clamp().transform(y_pred)
-
+    y_pred = infer(resolution, train)
     y_pred = le.inverse_transform(y_pred)
     m_ap = mean_average_precision(train, y_pred, l2i=le.l2i)
     print(m_ap["mAP"].iloc[0])
