@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pathlib import Path
 
 import cv2
@@ -28,10 +29,9 @@ def infer(resolution: tuple[int, int], samples: list[Sample]) -> list[Sample]:
         weights=SSDLite320_MobileNet_V3_Large_Weights.COCO_V1,
     )
 
-    y = model.transform([cv2.imread(sample.file_name) for sample in samples])
-    # Fix the indexing issues
-    y = Clamp().transform(y)
-    return y
+    return model.transform(
+        [cv2.imread(sample.file_name) for sample in samples],
+    )
 
 
 class Clamp:
@@ -49,6 +49,7 @@ def main(
     path: Path = Path("data/blobs/annotations.json"),
     resolution: tuple[int, int] = (480, 640),  # height, width
     n_samples: int = 1000,
+    weights=SSDLite320_MobileNet_V3_Large_Weights.COCO_V1.meta["categories"],
 ):
     if not path.exists():
         make_detection_task(
@@ -62,14 +63,19 @@ def main(
     le = LabelEncoder().fit(train)
     # model.fit(le.transform(train)) ~
     y_pred = infer(resolution, train)
-    y_pred = le.inverse_transform(y_pred)
-    for i, (true, pred) in enumerate(zip(train, y_pred)):
+    y_pred_ = LabelEncoder(
+        l2i={label: i for i, label in enumerate(weights)},
+    ).inverse_transform(list(map(deepcopy, y_pred)))
+
+    for i, (true, pred) in enumerate(zip(train, y_pred_)):
         if i > 10:
             continue
         frame = cv2.imread(str(true.file_name))
         cv2.imshow("frame", plot(frame, pred))
         cv2.waitKey()
 
+    y_pred = Clamp().transform(y_pred)
+    y_pred = le.inverse_transform(y_pred)
     m_ap = mean_average_precision(train, y_pred, l2i=le.l2i)
     print(m_ap["mAP"].iloc[0])
 
