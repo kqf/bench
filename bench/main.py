@@ -43,17 +43,6 @@ def infer(
     return model.transform(samples), model.label_encoder
 
 
-class Clamp:
-    def fit(self, X):
-        return self
-
-    def transform(self, X: list[Sample]) -> list[Sample]:
-        for sample in X:
-            for ann in sample.annotations:
-                ann.label = min(int(ann.label), 2)
-        return X
-
-
 def main(
     path: Path = Path("data/blobs/annotations.json"),
     resolution: tuple[int, int] = (480, 640),  # height, width
