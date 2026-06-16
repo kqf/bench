@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import cv2
+import torch
 from dadinhos.generate import make_detection_task
 from joblib import Memory
 from modelinhos.evaluation import (
@@ -20,26 +21,48 @@ from torchvision.models.detection import (
 memory = Memory(location=".cache", verbose=0)
 
 
-@memory.cache
-def infer(
+def trainer(model: torch.nn.Module, *args, **kwargs) -> torch.nn.Module:
+    class Trainer:
+        def fit(self, samples: list[Sample]):
+            print("Training the model")
+            return self
+
+    return Trainer()
+
+
+def build_model(
     resolution: tuple[int, int],
-    samples: list[Sample],
-) -> tuple[list[Sample], LabelEncoder]:
+):
     weights = SSDLite320_MobileNet_V3_Large_Weights.COCO_V1
-    model = TorchvisionDetector(
+    n = len(weights.meta["categories"])
+    return TorchvisionDetector(
         resolution=resolution,
         build_model=ssdlite320_mobilenet_v3_large,
         weights=weights,
         lencoder=LabelEncoder(
             l2i={
-                label: i
-                for i, label in enumerate(
-                    weights.meta["categories"],
-                )
+                "0": n - 1,
+                "1": n - 1,
+                "2": n - 1,
+                **{
+                    label: i
+                    for i, label in enumerate(
+                        weights.meta["categories"],
+                    )
+                },
             },
         ),
+        build_trainer=trainer,
     )
 
+
+@memory.cache
+def infer(
+    resolution: tuple[int, int],
+    samples: list[Sample],
+) -> tuple[list[Sample], LabelEncoder]:
+    model = build_model(resolution)
+    model.fit(samples)
     return model.transform(samples), model.label_encoder
 
 
@@ -57,7 +80,6 @@ def main(
         )
 
     train = read_samples(path)
-    # model.fit(le.transform(train)) ~
     y_pred, le = infer(resolution, train)
 
     for i, (true, pred) in enumerate(zip(train, y_pred)):
