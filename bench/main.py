@@ -34,16 +34,15 @@ def build_model(
     resolution: tuple[int, int],
 ):
     weights = SSDLite320_MobileNet_V3_Large_Weights.COCO_V1
-    n = len(weights.meta["categories"])
     return TorchvisionDetector(
         resolution=resolution,
         build_model=ssdlite320_mobilenet_v3_large,
         weights=weights,
         lencoder=LabelEncoder(
             l2i={
-                "0": n - 1,
-                "1": n - 1,
-                "2": n - 1,
+                "0": 1,
+                "1": 1,
+                "2": 1,
                 **{
                     label: i
                     for i, label in enumerate(
