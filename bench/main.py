@@ -82,7 +82,7 @@ def main(
     y_pred, le = infer(resolution, train)
 
     for i, (true, pred) in enumerate(zip(train, y_pred)):
-        if i > 10:
+        if i > 1:
             continue
         frame = cv2.imread(str(true.file_name))
         cv2.imshow("frame", plot(frame, pred))
